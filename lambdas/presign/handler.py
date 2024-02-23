@@ -24,6 +24,9 @@ def get_bucket_name() -> str:
 
 
 def handler(event, context):
+    # Print handling marker in trace
+    print("Handler(presign)")
+    
     bucket = get_bucket_name()
 
     key = event["rawPath"].lstrip("/")

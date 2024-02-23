@@ -3,6 +3,7 @@ import os
 import typing
 import uuid
 from urllib.parse import unquote_plus
+import logging
 
 import boto3
 from PIL import Image
@@ -10,6 +11,8 @@ from PIL import Image
 if typing.TYPE_CHECKING:
     from mypy_boto3_s3 import S3Client
     from mypy_boto3_ssm import SSMClient
+
+# logger = logging.getLogger("localstack.request.aws")
 
 MAX_DIMENSIONS = 400, 400
 """The max width and height to scale the image to."""
@@ -50,8 +53,29 @@ def download_and_resize(bucket, key) -> str:
     resize_image(download_path, upload_path)
     return upload_path
 
+def wait_for_debug_client(timeout=15):
+    """Utility function to enable debugging with Visual Studio Code"""
+    import time, threading
+    import sys, glob
+    sys.path.append(glob.glob(".venv/lib/python*/site-packages")[0])
+    import debugpy
+
+    debugpy.listen(("0.0.0.0", 19891))
+    class T(threading.Thread):
+        daemon = True
+        def run(self):
+            time.sleep(timeout)
+            print("Canceling debug wait task ...")
+            debugpy.wait_for_client.cancel()
+    T().start()
+    print("Waiting for client to attach debugger ...")
+    debugpy.wait_for_client()
 
 def handler(event, context):
+    # Print handling marker in trace
+    print("Handler(resize)")
+    # logger.error("Handler(resize)")
+
     target_bucket = get_bucket_name()
 
     for record in event["Records"]:

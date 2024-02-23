@@ -27,6 +27,9 @@ def get_bucket_name_resized() -> str:
 
 
 def handler(event, context):
+    # Print handling marker in trace
+    print("Handler(list)")
+    
     images_bucket = get_bucket_name_images()
     images = s3.list_objects(Bucket=images_bucket)
 
